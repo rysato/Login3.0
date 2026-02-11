@@ -112,11 +112,10 @@ router.get('/me', verificaToken, (req, res) => {
   res.json({ user: req.user });
 });
 
-router.get('/', (req, res) => {
+app.get('/', (req, res) => {
   res.send('API Online');
 });
 
 app.use('/api', router);
 app.use('/', router);
-
 module.exports = app;
