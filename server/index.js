@@ -43,6 +43,8 @@ app.use(cors({
   credentials: true
 }));
 
+const router = express.Router();
+
 const verificaToken = (req, res, next) => {
   const token = req.cookies.token_acesso;
   if (!token) return res.status(401).json({ message: 'Não autenticado' });
@@ -56,7 +58,7 @@ const verificaToken = (req, res, next) => {
   }
 };
 
-app.post('/register', async (req, res) => {
+router.post('/register', async (req, res) => {
   const { username, password } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -70,7 +72,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.post('/login', async (req, res) => {
+router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   try {
@@ -84,12 +86,10 @@ app.post('/login', async (req, res) => {
 
     const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
 
-    const isProduction = process.env.NODE_ENV === 'production';
-
     res.cookie('token_acesso', token, {
       httpOnly: true,
-      secure: isProduction, 
-      sameSite: isProduction ? 'none' : 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 3600000 
     });
 
@@ -99,22 +99,24 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.post('/logout', (req, res) => {
-  const isProduction = process.env.NODE_ENV === 'production';
+router.post('/logout', (req, res) => {
   res.clearCookie('token_acesso', {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
+    secure: true,
+    sameSite: 'none',
   });
   return res.json({ message: 'Logout realizado' });
 });
 
-app.get('/me', verificaToken, (req, res) => {
+router.get('/me', verificaToken, (req, res) => {
   res.json({ user: req.user });
 });
 
-app.get('/', (req, res) => {
+router.get('/', (req, res) => {
   res.send('API Online');
 });
+
+app.use('/api', router);
+app.use('/', router);
 
 module.exports = app;
