@@ -26,13 +26,15 @@ pool.query(`
 app.use(express.json());
 app.use(cookieParser());
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://login-3-0.vercel.app',
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
+];
+
 app.use(cors({
   origin: (origin, callback) => {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'https://seu-projeto.vercel.app' 
-    ];
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -57,7 +59,6 @@ const verificaToken = (req, res, next) => {
 
 app.post('/register', async (req, res) => {
   const { username, password } = req.body;
-  
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
@@ -84,10 +85,12 @@ app.post('/login', async (req, res) => {
 
     const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
 
+    const isProduction = process.env.NODE_ENV === 'production';
+
     res.cookie('token_acesso', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      secure: isProduction, 
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 3600000 
     });
 
@@ -98,10 +101,11 @@ app.post('/login', async (req, res) => {
 });
 
 app.post('/logout', (req, res) => {
+  const isProduction = process.env.NODE_ENV === 'production';
   res.clearCookie('token_acesso', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
   });
   return res.json({ message: 'Logout realizado' });
 });
@@ -111,7 +115,7 @@ app.get('/me', verificaToken, (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('API funcionando');
+  res.send('API Online');
 });
 
 if (require.main === module) {
