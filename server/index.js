@@ -58,6 +58,10 @@ const verificaToken = (req, res, next) => {
   }
 };
 
+router.get('/', (req, res) => {
+  res.send('Backend Funcionando - Rota Raiz');
+});
+
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -110,10 +114,6 @@ router.post('/logout', (req, res) => {
 
 router.get('/me', verificaToken, (req, res) => {
   res.json({ user: req.user });
-});
-
-router.get('/', (req, res) => {
-  res.send('API Online');
 });
 
 app.use('/api', router);
