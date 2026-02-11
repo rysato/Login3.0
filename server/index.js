@@ -29,8 +29,7 @@ app.use(cookieParser());
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://login-3-0.vercel.app',
-  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
+  'https://login3-0-gmff.vercel.app'
 ];
 
 app.use(cors({
@@ -117,9 +116,5 @@ app.get('/me', verificaToken, (req, res) => {
 app.get('/', (req, res) => {
   res.send('API Online');
 });
-
-if (require.main === module) {
-  app.listen(3000, () => console.log('Servidor rodando na porta 3000'));
-}
 
 module.exports = app;
